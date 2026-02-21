@@ -18,6 +18,8 @@
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #FDFCFB;
+            /* 防止內容被固定底欄遮擋 */
+            padding-bottom: 120px;
         }
         .animate-in {
             animation: fadeIn 0.4s ease-out forwards;
@@ -28,7 +30,11 @@
         }
         textarea:focus {
             border-color: #C19A6B;
-            box-shadow: 0 0 0 2px rgba(193, 154, 107, 0.2);
+            box-shadow: 0 0 0 2px rgba(193, 154, 107, 0.1);
+        }
+        /* 隱藏滾動條但保持功能 */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
         }
     </style>
 </head>
@@ -38,10 +44,8 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // 建立一個通用的圖示組件來處理 Lucide 圖示
         const LucideIcon = ({ name, className = "w-6 h-6" }) => {
             const iconRef = useRef(null);
-
             useEffect(() => {
                 if (window.lucide && iconRef.current) {
                     const iconData = window.lucide.icons[name];
@@ -51,7 +55,6 @@
                     }
                 }
             }, [name, className]);
-
             return <span ref={iconRef} className="inline-block" />;
         };
 
@@ -59,11 +62,11 @@
             const [currentStep, setCurrentStep] = useState(0);
             const [data, setData] = useState({
                 steps: [
-                    { caretaker: '', personality: '', influence: '' }, // Step 0
-                    { shameMoment: '' },                             // Step 1
-                    { unexpectedGrace: '' },                         // Step 2
-                    { earliestMemory: '' },                          // Step 3
-                    { godFootprints: '' }                            // Step 4
+                    { caretaker: '', personality: '', influence: '' },
+                    { shameMoment: '' },
+                    { unexpectedGrace: '' },
+                    { earliestMemory: '' },
+                    { godFootprints: '' }
                 ],
                 finalSummary: ''
             });
@@ -77,20 +80,16 @@
                 { title: "第五站：上帝介入的足跡", icon: "MessageSquareQuote" }
             ];
 
-            // 從瀏覽器儲存空間讀取進度
             useEffect(() => {
                 const saved = localStorage.getItem('walking_meditation_flow222');
                 if (saved) {
                     try {
                         const parsed = JSON.parse(saved);
                         if (parsed.steps) setData(parsed);
-                    } catch (e) {
-                        console.error("無法讀取進度");
-                    }
+                    } catch (e) {}
                 }
             }, []);
 
-            // 儲存進度到瀏覽器
             useEffect(() => {
                 localStorage.setItem('walking_meditation_flow222', JSON.stringify(data));
             }, [data]);
@@ -118,124 +117,65 @@
                     document.execCommand('copy');
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
-                } catch (err) {
-                    console.error("複製失敗");
-                }
+                } catch (err) {}
                 document.body.removeChild(textArea);
             };
 
-            const renderFields = () => {
-                switch (currentStep) {
-                    case 0:
-                        return (
-                            <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-lg font-semibold block text-[#4B3621]">童年時期，主要照顧我的人是...</label>
-                                    <textarea 
-                                        className="w-full bg-white border border-gray-200 rounded-2xl p-4 min-h-[80px] outline-none transition-all"
-                                        value={data.steps[0].caretaker}
-                                        onChange={(e) => handleInputChange('caretaker', e.target.value)}
-                                        placeholder="例如：婆婆、媽媽..."
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-lg font-semibold block text-[#4B3621]">他/她是一個怎樣的人？</label>
-                                    <textarea 
-                                        className="w-full bg-white border border-gray-200 rounded-2xl p-4 min-h-[100px] outline-none transition-all"
-                                        value={data.steps[0].personality}
-                                        onChange={(e) => handleInputChange('personality', e.target.value)}
-                                        placeholder="描述其性格、給你的感覺..."
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-lg font-semibold block text-[#4B3621]">他/她對我的性情、價值觀有何影響？</label>
-                                    <textarea 
-                                        className="w-full bg-white border border-gray-200 rounded-2xl p-4 min-h-[100px] outline-none transition-all"
-                                        value={data.steps[0].influence}
-                                        onChange={(e) => handleInputChange('influence', e.target.value)}
-                                        placeholder="對你成長的印記..."
-                                    />
-                                </div>
-                            </div>
-                        );
-                    case 1:
-                        return (
-                            <div className="space-y-2">
-                                <label className="text-lg font-semibold block text-[#4B3621]">我曾經覺得自己好羞愧的時刻是...</label>
-                                <textarea 
-                                    className="w-full bg-white border border-gray-200 rounded-2xl p-4 min-h-[250px] outline-none transition-all"
-                                    value={data.steps[1].shameMoment}
-                                    onChange={(e) => handleInputChange('shameMoment', e.target.value)}
-                                    placeholder="試著寫下那份感受..."
-                                />
-                            </div>
-                        );
-                    case 2:
-                        return (
-                            <div className="space-y-2">
-                                <label className="text-lg font-semibold block text-[#4B3621]">那次，我曾經得到過無條件的幫助...</label>
-                                <textarea 
-                                    className="w-full bg-white border border-gray-200 rounded-2xl p-4 min-h-[250px] outline-none transition-all"
-                                    value={data.steps[2].unexpectedGrace}
-                                    onChange={(e) => handleInputChange('unexpectedGrace', e.target.value)}
-                                    placeholder="描述那個出奇不意的恩典..."
-                                />
-                            </div>
-                        );
-                    case 3:
-                        return (
-                            <div className="space-y-2">
-                                <label className="text-lg font-semibold block text-[#4B3621]">我最早/最深刻與家人相處的回憶是...</label>
-                                <textarea 
-                                    className="w-full bg-white border border-gray-200 rounded-2xl p-4 min-h-[250px] outline-none transition-all"
-                                    value={data.steps[3].earliestMemory}
-                                    onChange={(e) => handleInputChange('earliestMemory', e.target.value)}
-                                    placeholder="那個畫面、聲音或味道..."
-                                />
-                            </div>
-                        );
-                    case 4:
-                        return (
-                            <div className="space-y-2">
-                                <label className="text-lg font-semibold block text-[#4B3621]">神怎樣讓我看到祂在我生命中出現？</label>
-                                <textarea 
-                                    className="w-full bg-white border border-gray-200 rounded-2xl p-4 min-h-[250px] outline-none transition-all"
-                                    value={data.steps[4].godFootprints}
-                                    onChange={(e) => handleInputChange('godFootprints', e.target.value)}
-                                    placeholder="在人生的低谷或轉角，祂在那裡嗎？"
-                                />
-                            </div>
-                        );
-                    default:
-                        return null;
-                }
-            };
-
             return (
-                <div className="min-h-screen max-w-md mx-auto relative flex flex-col">
-                    {/* 置頂導航與進度條 */}
-                    <header className="sticky top-0 bg-white/90 backdrop-blur-sm border-b border-gray-100 z-20 px-6 py-4">
-                        <h1 className="text-center text-xl font-bold text-[#4B3621] mb-4">散步隨筆</h1>
-                        <div className="flex gap-1.5">
-                            {[0, 1, 2, 3, 4, 5].map((idx) => (
-                                <div 
-                                    key={idx} 
-                                    className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${idx <= currentStep ? 'bg-[#C19A6B]' : 'bg-gray-100'}`} 
-                                />
-                            ))}
+                <div className="min-h-screen max-w-md mx-auto flex flex-col">
+                    {/* Header */}
+                    <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md border-b border-gray-100 z-30">
+                        <div className="max-w-md mx-auto px-6 py-4">
+                            <h1 className="text-center text-lg font-bold text-[#4B3621] mb-3">散步隨筆</h1>
+                            <div className="flex gap-1">
+                                {[0, 1, 2, 3, 4, 5].map((idx) => (
+                                    <div key={idx} className={`h-1 flex-1 rounded-full transition-all duration-500 ${idx <= currentStep ? 'bg-[#C19A6B]' : 'bg-gray-100'}`} />
+                                ))}
+                            </div>
                         </div>
                     </header>
 
-                    {/* 主要內容區 */}
-                    <main className="flex-grow p-6">
+                    {/* Main Content - Added top margin to account for fixed header */}
+                    <main className="mt-28 p-6 flex-grow">
                         {currentStep < 5 ? (
                             <div key={currentStep} className="animate-in space-y-6">
                                 <div className="flex items-center gap-2 text-[#C19A6B]">
                                     <LucideIcon name={stepsInfo[currentStep].icon} className="w-5 h-5" />
-                                    <span className="text-xs font-bold tracking-widest uppercase">站點 {currentStep + 1}</span>
+                                    <span className="text-xs font-bold tracking-widest uppercase">Step {currentStep + 1}</span>
                                 </div>
                                 <h2 className="text-2xl font-bold text-[#4B3621]">{stepsInfo[currentStep].title}</h2>
-                                {renderFields()}
+                                
+                                {currentStep === 0 ? (
+                                    <div className="space-y-6 pb-12">
+                                        <div className="space-y-2">
+                                            <label className="text-base font-semibold block text-[#4B3621]">童年時期，主要照顧我的人是...</label>
+                                            <textarea className="w-full bg-white border border-gray-200 rounded-xl p-4 min-h-[60px] outline-none" value={data.steps[0].caretaker} onChange={(e) => handleInputChange('caretaker', e.target.value)} placeholder="例如：婆婆、媽媽..." />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-base font-semibold block text-[#4B3621]">他/她是一個怎樣的人？</label>
+                                            <textarea className="w-full bg-white border border-gray-200 rounded-xl p-4 min-h-[100px] outline-none" value={data.steps[0].personality} onChange={(e) => handleInputChange('personality', e.target.value)} placeholder="描述其性格..." />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-base font-semibold block text-[#4B3621]">他/她對我的性情、價值觀有何影響？</label>
+                                            <textarea className="w-full bg-white border border-gray-200 rounded-xl p-4 min-h-[100px] outline-none" value={data.steps[0].influence} onChange={(e) => handleInputChange('influence', e.target.value)} placeholder="對你成長的印記..." />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2 pb-12">
+                                        <label className="text-base font-semibold block text-[#4B3621]">
+                                            {currentStep === 1 && "我曾經覺得自己好羞愧的時刻是..."}
+                                            {currentStep === 2 && "那次，我曾經得到過無條件的幫助..."}
+                                            {currentStep === 3 && "我最早/最深刻與家人相處的回憶是..."}
+                                            {currentStep === 4 && "神怎樣讓我看到祂在我生命中出現？"}
+                                        </label>
+                                        <textarea 
+                                            className="w-full bg-white border border-gray-200 rounded-xl p-4 min-h-[300px] outline-none"
+                                            value={data.steps[currentStep][Object.keys(data.steps[currentStep])[0]]}
+                                            onChange={(e) => handleInputChange(Object.keys(data.steps[currentStep])[0], e.target.value)}
+                                            placeholder="請在這裡輸入內容..."
+                                        />
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="animate-in space-y-8 text-center pt-4">
@@ -244,41 +184,24 @@
                                 </div>
                                 <h2 className="text-2xl font-bold text-[#4B3621]">漫步旅程告一段落</h2>
                                 <div className="text-left space-y-2">
-                                    <label className="text-lg font-semibold block text-[#4B3621]">在這次散步歷程中，我最深刻的是...</label>
-                                    <textarea 
-                                        className="w-full bg-white border border-gray-200 rounded-2xl p-4 min-h-[200px] outline-none transition-all"
-                                        value={data.finalSummary}
-                                        onChange={(e) => setData({...data, finalSummary: e.target.value})}
-                                        placeholder="寫下今天最想留住的一份感覺..."
-                                    />
+                                    <label className="text-base font-semibold block text-[#4B3621]">在這次散步歷程中，我最深刻的是...</label>
+                                    <textarea className="w-full bg-white border border-gray-200 rounded-xl p-4 min-h-[180px] outline-none" value={data.finalSummary} onChange={(e) => setData({...data, finalSummary: e.target.value})} placeholder="寫下今天最想留住的一份感覺..." />
                                 </div>
-                                <button 
-                                    onClick={exportToClipboard}
-                                    className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${copied ? 'bg-green-600 text-white' : 'bg-[#4B3621] text-white'}`}
-                                >
+                                <button onClick={exportToClipboard} className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all ${copied ? 'bg-green-600 text-white' : 'bg-[#4B3621] text-white'}`}>
                                     <LucideIcon name={copied ? 'Check' : 'Copy'} className="w-5 h-5" />
                                     {copied ? '已複製內容！' : '匯出並複製成果'}
                                 </button>
-                                <p className="text-xs text-gray-400">複製後可直接貼到 WhatsApp 或筆記本</p>
                             </div>
                         )}
                     </main>
 
-                    {/* 置底按鈕 */}
-                    <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-gray-100 z-20">
+                    {/* Footer - Fixed bottom with safe padding */}
+                    <footer className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 z-30 p-4">
                         <div className="max-w-md mx-auto flex gap-3">
-                            <button 
-                                onClick={() => setCurrentStep(prev => prev - 1)}
-                                disabled={currentStep === 0}
-                                className={`flex-1 py-4 rounded-2xl font-bold flex items-center justify-center gap-1 transition-all ${currentStep === 0 ? 'bg-gray-50 text-gray-300' : 'bg-gray-100 text-[#4B3621] active:bg-gray-200'}`}
-                            >
+                            <button onClick={() => {setCurrentStep(prev => prev - 1); window.scrollTo(0,0);}} disabled={currentStep === 0} className={`flex-1 py-4 rounded-xl font-bold flex items-center justify-center gap-1 ${currentStep === 0 ? 'bg-gray-50 text-gray-300' : 'bg-gray-100 text-[#4B3621]'}`}>
                                 <LucideIcon name="ChevronLeft" className="w-5 h-5" /> 上一站
                             </button>
-                            <button 
-                                onClick={() => setCurrentStep(prev => prev + 1)}
-                                disabled={currentStep === 5}
-                                className={`flex-[1.5] py-4 rounded-2xl font-bold flex items-center justify-center gap-1 transition-all shadow-sm ${currentStep === 5 ? 'bg-gray-50 text-gray-300' : 'bg-[#4B3621] text-white active:bg-[#3D2C1B]'}`}
-                            >
+                            <button onClick={() => {setCurrentStep(prev => prev + 1); window.scrollTo(0,0);}} disabled={currentStep === 5} className={`flex-[1.5] py-4 rounded-xl font-bold flex items-center justify-center gap-1 shadow-sm ${currentStep === 5 ? 'bg-gray-50 text-gray-300' : 'bg-[#4B3621] text-white'}`}>
                                 {currentStep === 4 ? '查看總結' : '下一站'} <LucideIcon name="ChevronRight" className="w-5 h-5" />
                             </button>
                         </div>
